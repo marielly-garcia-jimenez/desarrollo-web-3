@@ -19,15 +19,15 @@ services:
     networks:
       - mongo-network
     depends_on:
-      - mongo  # Asegura que mongo inicie antes
+      - mongo  
 
   frontend:
-    build: ./frontend  # Cambiado de 'image' a 'build' si estás construyendo desde el Dockerfile local
+    build: ./frontend  
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app           # Monta el código fuente
-      - /app/node_modules         # Evita conflictos de dependencias locales
+      - ./frontend:/app           
+      - /app/node_modules         
     environment:
       - CHOKIDAR_USEPOLLING=true
     depends_on:

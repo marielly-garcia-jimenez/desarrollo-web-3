@@ -10,4 +10,5 @@ RUN npm install
 COPY . .
 # Exponer el puerto donde corre React
 EXPOSE 3000
-# Iniciar en modo desar
+# Iniciar en modo desarrollo (con hot reload)
+CMD ["npm", "start"]

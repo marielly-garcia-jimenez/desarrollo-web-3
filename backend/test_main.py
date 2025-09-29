@@ -1,44 +1,45 @@
-import mongomock
 import pytest
-from pystest import monkeypatch
+import mongomock
 
-from pymongo import MongoClient
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import httpx
+from pymongo import MongoClient
+from pytest import monkeypatch
 
-import main
-
+from main import app
+fake_mongo_client = mongomock.MongoClient()
+fake_database = fake_mongo_client.practica1
+fake_collection_historial = fake_database.historial
 
 client = TestClient(app)
-fake_mongo_client = mongomock.MongoClient()
-database = mongo_client.practica1
-collection_historial = database.historial
+
 
 @pytest.mark.parametrize(
-    "numeroA, numeroB, resultado",
-    [
-        (5, 10, 15),
-        (0, 0, 0),
-        (-5, 5, 0),
-        (-10,-5, -15),
-        (10, -20, -10)
-    ]
+        "numeroa, numerob, resultado",
+        [
+            (5, 10, 15),
+            (0, 0, 0),
+            (-5, 5, 0),
+            (-10, -5, -15),
+            (2.5, 2.5, 5.0),
+            (10, -20, -10)
+        ]
 )
-def test_sumar(numeroA, numeroB, resultado):
-    monkeypatch.setattr(main, "collection_historial", fake_collection_historial)
-    response = client.get(f"/calculadora/suma?a{numeroA}&b={numeroB}")
-    assert response.status_code ==200
-    assert response.json() == {"a": numeroA, "b": numeroB, "resultado": resultado}
 
-    assert collection_historial.find_one({"resultado": resultado, "a": numeroA. "b": numeroB})
+def test_sumar(numeroa, numerob, resultado):
+    monkeypatch.setattr(main,"collection_historia", fake_collection_historial)
+    response = client.get(f"/calculadora/sum?a={numeroa}&b={numerob}")
+    assert response.status_code == 200
+    assert response.json() == {"a": numeroa, "b": numerob, "resultado": resultado}
+    assert collection_historial.insert_one.called
 
-def test_historial(monkeypatch):
-    monkeypatch.setattr(main, "collection_historial", fake_collection_historial)
 
+def test_historial(monkeypatch): 
+    monkeypatch.setattr(main, "collection_historia", fake_collection_historial)
     response = client.get("/calculadora/historial")
     assert response.status_code == 200
 
+    
     expected_data = list(fake_collection_historial.find({}))
 
     historial = []
@@ -49,6 +50,9 @@ def test_historial(monkeypatch):
             "resultado": document["resultado"],
             "date": document["date"].isoformat()
         })
+    
+    print(f"DEBUG: expected_date: {historial}")
+    print(f"DEBUG: response.json(): {response.json()}")
 
-        print(f"DEBUG: expected_data: {historial}")
-        print(f"DEBUG: response.json(): {response.json()}")
+    
+    assert response.json() == {"historia": historial}
