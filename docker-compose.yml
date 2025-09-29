@@ -1,0 +1,39 @@
+services:
+  mongo:
+    image: mirror.gcr.io/library/mongo:8
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin_user
+      MONGO_INITDB_ROOT_PASSWORD: web3
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo-network
+
+  calculadora:
+    image: calculadora-fast-api:latest
+    volumenes:
+    - ./backend:/app
+    ports:
+      - "8089:8000"
+    networks:
+      - mongo-network
+    depends_on:
+      - mongo  # Asegura que mongo inicie antes
+
+  frontend:
+    build: ./frontend  # Cambiado de 'image' a 'build' si estás construyendo desde el Dockerfile local
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app           # Monta el código fuente
+      - /app/node_modules         # Evita conflictos de dependencias locales
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - calculadora
+    networks:
+      - mongo-network
+
+networks:
+  mongo-network:

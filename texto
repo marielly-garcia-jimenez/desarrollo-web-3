@@ -1,0 +1,25 @@
+.
+├── /docs
+│   └── (Archivos de documentación del proyecto)
+|
+├── /src
+│   ├── /frontend
+│   │   └── (Código de la interfaz de usuario)
+│   └── /backend
+│       └── (Lógica de negocio, APIs y servicios)
+|
+├── /tests
+│   ├── /unit
+│   │   └── (Pruebas unitarias)
+│   └── /integration
+│       └── (Pruebas de integración)
+|
+├── /config
+│   └── (Archivos de configuración del entorno, base de datos, etc.)
+|
+└── /scripts
+    └── (Scripts de automatización y utilidades, como deploys o builds)
+
+
+
+    
