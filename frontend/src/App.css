@@ -1,38 +1,78 @@
-.App {
-  text-align: center;
+/* App.css — estilos modernos y responsivos básicos */
+:root{
+--bg: #f4f6f9;
+--card: #ffffff;
+--primary: #2463eb;
+--accent: #0f5132;
+--muted: #6c757d;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+*{box-sizing: border-box;}
+body, html, #root { height: 100%; margin: 0; font-family: "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); }
+
+.App { max-width: 1100px; margin: 24px auto; padding: 12px; }
+
+header { text-align: center; margin-bottom: 16px; }
+h1 { margin: 0; color: #222; }
+.subtitle { color: var(--muted); margin-top: 6px; }
+
+main { display: grid; grid-template-columns: 1fr 420px; gap: 18px; align-items: start; }
+
+/* Tarjetas */
+.card {
+background: var(--card);
+padding: 18px;
+border-radius: 14px;
+box-shadow: 0 6px 18px rgba(17,24,39,0.06);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Input y botones */
+.input-card input[type="text"]{
+width: 100%;
+padding: 12px 14px;
+border-radius: 10px;
+border: 1px solid #e1e7ef;
+font-size: 15px;
+margin-bottom: 12px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-start; }
+button {
+background: var(--primary);
+color: white;
+border: none;
+padding: 10px 14px;
+border-radius: 10px;
+cursor: pointer;
+font-weight: 600;
 }
+button.small { padding: 8px 10px; font-size: 13px; margin-left:8px; background:#fafafa; color:#333; border:1px solid #e6e6e6; }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.App-link {
-  color: #61dafb;
-}
+/* Result */
+.result-card { margin-top: 12px; background: #eaf6ff; color: #06366f; border-radius: 10px; padding: 12px; }
+.result-card .big-result { font-size: 28px; font-weight: 700; margin-top: 8px; }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* History */
+.history-card { max-height: 70vh; overflow: auto; }
+.history-controls { margin-bottom: 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.control-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+.history-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+.history-item { display:flex; flex-direction:column; gap:6px; padding:10px; border-radius:10px; background:#fff; box-shadow: 0 4px 10px rgba(2,6,23,0.04); }
+.history-main { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.op { font-weight:700; background:#f0f5ff; color:var(--primary); padding:6px 8px; border-radius:8px; }
+.nums { color:#333; }
+.res { margin-left:auto; font-weight:700; color:#111; }
+
+.history-meta { color:var(--muted); font-size:13px; }
+
+
+.error { margin-top:8px; color: #7a1f1f; background:#fff2f2; padding:10px; border-radius:8px; }
+.info { margin-top:8px; color: #444; background:#f7f9fc; padding:8px; border-radius:8px; }
+
+
+@media (max-width: 900px) {
+main { grid-template-columns: 1fr; }
+.history-card { order: 2; }
 }
