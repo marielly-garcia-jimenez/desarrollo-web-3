@@ -29,6 +29,9 @@ jobs:
             - name: Determine image tag
               id: vars
               run: |
+                REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+                echo "REPO_NAME=${REPO_LOWER}" >> $GITHUB_ENV
+
                 if [[ "${GITHUB_REF}" == "tag" ]]; then
                     echo "TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
                 else
