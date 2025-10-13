@@ -1,57 +1,52 @@
-
-
-name: CI/CD Backend - Build and Push Docker Image
-
+name: Build and Push Docker Image
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*.*.*' 
-    paths:
-      - 'backend/**' 
+    push:
+        branches:
+            - main
+        tags:
+            - 'v*.*.*'
+        paths:
+            - "backend/**"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    build:
+        runs-on: ubuntu-latest
 
-   
-    permissions:
-      contents: read
-      packages: write 
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} 
-      
-      
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          
-          images: ghcr.io/${{ github.repository }}/backend_app 
-          tags: |
-            type=ref,event=tag         # Usa el tag de Git (v1.0.0) como tag de Docker
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }} # Agrega 'latest' solo si es la rama main
+        permissions:
+            contents: read
+            packages: write 
+        
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
             
-      
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend 
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                registry: ghcr.io
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+            
+            - name: Determine image tag
+              id: vars
+              run: |
+                REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+                echo "REPO_NAME=${REPO_LOWER}" >> $GITHUB_ENV
+
+                if [[ "${GITHUB_REF}" == "tag" ]]; then
+                    echo "TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+                else
+                    echo "TAG=latest" >> $GITHUB_ENV
+                fi
+
+            - name: Build Docker Image
+              run: |
+                docker build -t ghcr.io/${{ github.repository }}:${{ env.TAG }} ./backend
+            
+            - name: Push Docker Image
+              run: |
+                docker push ghcr.io/${{ github.repository }}:${{ env.TAG }}
 
 
 
