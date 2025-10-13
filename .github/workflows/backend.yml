@@ -1,0 +1,48 @@
+name: Build and Push Backend Image
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+    paths:
+      - "backend/**"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from git tag
+        id: get_version
+        run: |
+          # If the commit has a tag like v1.0.0, use it; otherwise, use latest date/time
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.$(date +%s)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/backend:${{ steps.get_version.outputs.version }}
+            ghcr.io/${{ github.repository }}/backend:latest
