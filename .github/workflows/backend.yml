@@ -1,4 +1,4 @@
-name: Build and Push Backend Image
+name: CI/CD Backend - Build and Push Docker Image
 
 on:
   push:
@@ -7,21 +7,20 @@ on:
     tags:
       - 'v*.*.*'
     paths:
-      - "backend/**"
+      - 'backend/**'
+  workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -30,19 +29,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from git tag
-        id: get_version
+      - name: Set image tag
+        id: vars
         run: |
-          # If the commit has a tag like v1.0.0, use it; otherwise, use latest date/time
-          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.$(date +%s)")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "REPO_NAME=${REPO_LOWER}" >> $GITHUB_ENV
 
-      - name: Build and Push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/backend:${{ steps.get_version.outputs.version }}
-            ghcr.io/${{ github.repository }}/backend:latest
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="latest"
+          fi
+          echo "TAG=${TAG}" >> $GITHUB_ENV
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/backend_app:${{ env.TAG }} ./backend
+
+      - name: Push Docker Image
+        run: |
+          docker push ghcr.io/${{ github.repository }}/backend_app:${{ env.TAG }}
+
