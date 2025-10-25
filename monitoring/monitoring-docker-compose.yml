@@ -1,0 +1,32 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Pon el archivo "prometheus.yml" en el contenedor
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml' # Indica a Prometheus dónde está el archivo de configuración
+    ports:
+      - '9090:9090'
+    networks:
+      - practicas_mongo-network
+    pull_policy: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - '3001:3000' # Como react ya esta siendo fowardeado en el 3000, uso el 3001 para grafana
+    networks:
+      - practicas_mongo-network
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    pull_policy: always
+    
+  
+networks:
+  practicas_mongo-network:
+    external: true # Usa el mismo netowrk que los otros contendores

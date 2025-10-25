@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'fast-api-backend'
+    static_configs:
+      - targets: ['practicas-calculadora-1:8000'] # El puerto es 8000 por que es el que usa dentro de docker; 8089 es el que usa para fowarding

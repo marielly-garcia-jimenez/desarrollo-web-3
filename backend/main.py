@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List
 from pymongo import MongoClient
+from prometheus_fastapi_instrumentator import Instrumentator 
 
 # ==================== CONFIGURACIÓN DE LA BASE DE DATOS ====================
 
@@ -187,3 +188,5 @@ def get_history(
             "date": formatted_date
         })
     return {"history": history}
+
+    Instrumentator() .instrument(app) .expose(app)

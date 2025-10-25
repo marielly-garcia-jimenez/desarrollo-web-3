@@ -15,7 +15,7 @@ services:
   calculator:
     build: 
       context: ./backend # Usa el Dockerfile de la carpeta backend
-    image: calculator-fast-api
+    image: ghcr.io/marielly-garcia-jimenez/desarrollo-web-3/backend_app:latest
     volumes:
       - ./backend:/app # Hot-reloading en desarrollo
     environment:
@@ -28,6 +28,7 @@ services:
     networks: [mongo-network]
 
   frontend:
+    image: ghcr.io/marielly-garcia-jimenez/desarrollo-web-3/frontend_app:latest
     build: ./frontend # Usa el Dockerfile de la carpeta frontend
     ports:
       - "3000:3000" # Acceso al frontend en el puerto 3000 del host
@@ -40,6 +41,8 @@ services:
       - calculator # El frontend depende del backend
     networks:
       - mongo-network
+  
+  
 
 networks:
   mongo-network:
