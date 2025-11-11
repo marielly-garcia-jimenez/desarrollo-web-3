@@ -3,9 +3,9 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Pon el archivo "prometheus.yml" en el contenedor
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml' # Indica a Prometheus dónde está el archivo de configuración
+      - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - '9090:9090'
     networks:
@@ -16,7 +16,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - '3001:3000' # Como react ya esta siendo fowardeado en el 3000, uso el 3001 para grafana
+      - '3001:3000'  # React usa 3000, así que Grafana se expone en 3001
     networks:
       - practicas_mongo-network
     depends_on:
@@ -25,8 +25,32 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     pull_policy: always
-    
-  
+
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: loki
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./loki-config.yml:/etc/loki/config.yaml
+      - ./loki-data:/loki
+      - ./loki-wal:/wal        
+    ports:
+      - '3100:3100'
+    networks:
+      - practicas_mongo-network
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    depends_on:
+      - loki
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - practicas_mongo-network
+
 networks:
   practicas_mongo-network:
-    external: true # Usa el mismo netowrk que los otros contendores
+    external: true

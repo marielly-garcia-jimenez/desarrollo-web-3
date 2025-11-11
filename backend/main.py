@@ -7,8 +7,50 @@ from pydantic import BaseModel, Field
 from typing import List
 from pymongo import MongoClient
 from prometheus_fastapi_instrumentator import Instrumentator 
+from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
+import logging
 
-# ==================== CONFIGURACIÓN DE LA BASE DE DATOS ====================
+
+
+logger = logging.getLogger("custom_logger")
+logging_data = os.getenv("LOG_LEVEL", "INFO").upper()
+
+if logging_data == "DEBUG":
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.INFO)
+
+
+
+# Create a console handler
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logger.level)
+formatter = logging.Formatter(
+    "%(levelname)s: %(asctime)s - %(name)s - %(message)s"
+)
+console_handler.setFormatter(formatter)
+
+# Create an instance of the custom handler
+loki_handler = LokiLoggerHandler(
+    url="http://loki:3100/loki/api/v1/push",
+    labels={"application": "FastApi"},
+    label_keys={},
+    timeout=10,
+)
+
+logger.addHandler(loki_handler)
+logger.addHandler(console_handler)
+logger.info("Logger initialized")
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 MONGO_URL = os.environ.get(
     "MONGO_URL",
@@ -103,7 +145,10 @@ def calculate_sum(data: OperationData = Body(...)):
     validate_numbers(data.numbers, "sum")
     result = sum(data.numbers)
     save_to_history("sum", data.numbers, result)
+
+    logger.info(f"Operación suma exitoso")
     return {"operation": "sum", "numbers": data.numbers, "result": result}
+
 
 @app.post("/calculator/subtract")
 def calculate_subtract(data: OperationData = Body(...)):
@@ -121,7 +166,11 @@ def calculate_multiply(data: OperationData = Body(...)):
     for num in data.numbers:
         result *= num
     save_to_history("multiplication", data.numbers, result)
+    
+    logger.info(f"Operación suma exitoso")
     return {"operation": "multiplication", "numbers": data.numbers, "result": result}
+     
+    
 
 @app.post("/calculator/divide")
 def calculate_divide(data: OperationData = Body(...)):
