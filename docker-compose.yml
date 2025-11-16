@@ -1,48 +1,37 @@
-version: '3.8'
+
 
 services:
-  mongo:
-    image: mirror.gcr.io/library/mongo:8 
-    restart: always
-    environment:
-      # Credenciales para la conexión
-      MONGO_INITDB_ROOT_USERNAME: admin_user
-      MONGO_INITDB_ROOT_PASSWORD: web3
-    ports:
-      - "27020:27017" # Puerto opcional para acceder a Mongo desde el host
-    networks: [mongo-network]
-
   calculator:
-    build: 
-      context: ./backend # Usa el Dockerfile de la carpeta backend
     image: ghcr.io/marielly-garcia-jimenez/desarrollo-web-3/backend_app:latest
+    pull_policy: always
+    container_name: practicas-calculator-1
     volumes:
-      - ./backend:/app # Hot-reloading en desarrollo
+      - ./backend:/app
     environment:
-      # URL de conexión al servicio 'mongo' dentro de la red docker
-      MONGO_URL: mongodb://admin_user:web3@mongo:27017/?authSource=admin
-    depends_on:
-      - mongo
+      MONGO_URL: mongodb://admin_user:web3@practicas-mongo-1:27017/?authSource=admin
     ports:
-      - "8089:8000" # Acceso al backend en el puerto 8089 del host
-    networks: [mongo-network]
+      - "8089:8000"
+    networks:
+      - mongo-network
+    restart: always
 
   frontend:
     image: ghcr.io/marielly-garcia-jimenez/desarrollo-web-3/frontend_app:latest
-    build: ./frontend # Usa el Dockerfile de la carpeta frontend
+    pull_policy: always
+    container_name: practicas-frontend-1
+    build: ./frontend
     ports:
-      - "3000:3000" # Acceso al frontend en el puerto 3000 del host
+      - "3000:3000"
     volumes:
       - ./frontend:/app
-      - /app/node_modules # Evita sobrescribir node_modules
+      - /app/node_modules
     environment:
-      - CHOKIDAR_USEPOLLING=true # Hot-reloading para React
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
-      - calculator # El frontend depende del backend
+      - calculator
     networks:
       - mongo-network
-  
-  
+    restart: always
 
 networks:
   mongo-network:

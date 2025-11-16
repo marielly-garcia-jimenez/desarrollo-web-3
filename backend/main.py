@@ -8,8 +8,9 @@ from typing import List
 from pymongo import MongoClient
 from prometheus_fastapi_instrumentator import Instrumentator 
 from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
+import sys
 import logging
-
+from fastapi import FastAPI
 
 
 logger = logging.getLogger("custom_logger")
@@ -65,14 +66,29 @@ try:
     print("Conexión exitosa a MongoDB.")
 except Exception as e:
     print(f"Error de conexión a MongoDB: {e}")
+
+    class MockCursor:
+        def __init__(self, data):
+            self.data = data
+
+        def sort(self, *args, **kwargs):
+            # Devuelve una lista vacía simulando un cursor ordenado
+            return self.data  
+
     class MockCollection:
-        def insert_one(self, doc): pass
-        def find(self, query=None): return []
-        def delete_many(self, query=None): pass
-        def sort(self, sort_list): return self
+        def insert_one(self, doc):
+            pass
+
+        def find(self, query=None):
+            # Siempre devuelve una lista vacía a través del cursor mock
+            return MockCursor([])
+
+        def delete_many(self, query=None):
+            pass
+
     collection_historial = MockCollection()
 
-# ==================== MODELOS DE DATOS ====================
+
 
 class OperationData(BaseModel):
     numbers: List[float] = Field(..., min_length=2, description="List of at least 2 numbers for the operation.")
@@ -81,7 +97,7 @@ class BatchOperation(BaseModel):
     operation: str = Field(..., description="Operation type (sum, subtract, multiply, divide).")
     numbers: List[float] = Field(..., min_length=2, description="List of at least 2 numbers for the operation.")
 
-# ==================== UTILIDADES ====================
+
 
 def get_datetime():
     return datetime.now(pytz.timezone('America/Mexico_City'))
@@ -122,23 +138,23 @@ def save_to_history(operation: str, numbers: List[float], result: float):
     except Exception as e:
         print(f"Error al guardar en historial: {e}")
 
-# ==================== INICIALIZACIÓN DE FASTAPI ====================
+
 
 app = FastAPI(
     title="Calculator API - Project",
     description="API para calculadora con historial en MongoDB, operaciones de N números y validaciones."
 )
 
-# CORS
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # en producción limita a ["http://localhost:3000"]
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ==================== ENDPOINTS ====================
+
 
 @app.post("/calculator/sum")
 def calculate_sum(data: OperationData = Body(...)):
@@ -239,3 +255,4 @@ def get_history(
     return {"history": history}
 
     Instrumentator() .instrument(app) .expose(app)
+
